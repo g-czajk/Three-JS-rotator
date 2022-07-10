@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Three.js TypeScript Tutorials by Sean Bradley</title>
+        <style>
+            body {
+                overflow: hidden;
+                margin: 0px;
+                background-color: #222;
+            }
+
+            #progressBar {
+                width: 500px;
+                height: 24px;
+                position: absolute;
+                left: 50%;
+                top: 10px;
+                margin-left: -250px;
+            }
+
+            #annotationsPanel {
+                position: absolute;
+                top: 60px;
+                left: 4px;
+                width: auto;
+                height: auto;
+                color: white;
+                font-family: monospace;
+            }
+
+            #annotationsPanel ul {
+                padding: 0;
+                list-style-type: none;
+            }
+
+            .annotationLabel {
+                color: #ffffff;
+                font-family: monospace;
+                pointer-events: none;
+                font-size: 17px;
+            }
+
+            .annotationDescription {
+                color: #ffffff;
+                font-family: monospace;
+                pointer-events: none;
+                font-size: 14px;
+                position: absolute;
+                left: 25px;
+                padding: 1em;
+                width: 200px;
+                background: rgba(0, 0, 0, 0.66);
+                border-radius: 0.5em;
+                transition: opacity 0.5s;
+                display: none;
+            }
+
+            .annotationButton {
+                width: 160px;
+                height: 70px;
+                font-family: monospace;
+                background-color: rgba(0.25, 0.25, 0.25, 0.5);
+                color: white;
+                text-align: left;
+                padding-left: 20px;
+                cursor: pointer;
+            }
+            #cameraTracker {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 100px;
+                height: 50px;
+                color: #fff;
+            }
+            #controlsPanel {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-rows: repeat(3, minmax(0, 1fr));
+                gap: 2px;
+                position: absolute;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 160px;
+                height: 120px;
+            }
+
+            #controlsPanel div {
+                align-self: center;
+                justify-self: center;
+                border-radius: 12px;
+                padding: 5px 5px 0 5px;
+                background-color: rgba(0.25, 0.25, 0.25, 0.5);
+                cursor: pointer;
+                transition: 0.3s ease;
+            }
+
+            #controlsPanel div:hover {
+                opacity: 0.8;
+            }
+
+            #controlsPanel .rotate-left {
+                grid-column: 3/4;
+                grid-row: 2/3;
+            }
+
+            #controlsPanel .rotate-right {
+                grid-column: 1/2;
+                grid-row: 2/3;
+            }
+
+            #controlsPanel .zoom-in {
+                grid-column: 2/3;
+                grid-row: 1/2;
+            }
+
+            #controlsPanel .zoom-out {
+                grid-column: 2/3;
+                grid-row: 3/4;
+            }
+
+            #controlsPanel svg {
+                fill: white;
+                width: 40px;
+                height: 40px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <progress value="0" max="100" id="progressBar"></progress>
+        <div id="annotationsPanel"></div>
+        <div id="cameraTracker"></div>
+        <div id="controlsPanel">
+            <div class="rotate-left">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                    <path
+                        d="M480 256c0 123.4-100.5 223.9-223.9 223.9c-48.84 0-95.17-15.58-134.2-44.86c-14.12-10.59-16.97-30.66-6.375-44.81c10.59-14.12 30.62-16.94 44.81-6.375c27.84 20.91 61 31.94 95.88 31.94C344.3 415.8 416 344.1 416 256s-71.69-159.8-159.8-159.8c-37.46 0-73.09 13.49-101.3 36.64l45.12 45.14c17.01 17.02 4.955 46.1-19.1 46.1H35.17C24.58 224.1 16 215.5 16 204.9V59.04c0-24.04 29.07-36.08 46.07-19.07l47.6 47.63C149.9 52.71 201.5 32.11 256.1 32.11C379.5 32.11 480 132.6 480 256z"
+                    />
+                </svg>
+            </div>
+            <div class="rotate-right">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                    <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                    <path
+                        d="M468.9 32.11c13.87 0 27.18 10.77 27.18 27.04v145.9c0 10.59-8.584 19.17-19.17 19.17h-145.7c-16.28 0-27.06-13.32-27.06-27.2c0-6.634 2.461-13.4 7.96-18.9l45.12-45.14c-28.22-23.14-63.85-36.64-101.3-36.64c-88.09 0-159.8 71.69-159.8 159.8S167.8 415.9 255.9 415.9c73.14 0 89.44-38.31 115.1-38.31c18.48 0 31.97 15.04 31.97 31.96c0 35.04-81.59 70.41-147 70.41c-123.4 0-223.9-100.5-223.9-223.9S132.6 32.44 256 32.44c54.6 0 106.2 20.39 146.4 55.26l47.6-47.63C455.5 34.57 462.3 32.11 468.9 32.11z"
+                    />
+                </svg>
+            </div>
+            <div class="zoom-in">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                    <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                    <path
+                        d="M432 256c0 17.69-14.33 32.01-32 32.01H256v144c0 17.69-14.33 31.99-32 31.99s-32-14.3-32-31.99v-144H48c-17.67 0-32-14.32-32-32.01s14.33-31.99 32-31.99H192v-144c0-17.69 14.33-32.01 32-32.01s32 14.32 32 32.01v144h144C417.7 224 432 238.3 432 256z"
+                    />
+                </svg>
+            </div>
+            <div class="zoom-out">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                    <!--! Font Awesome Pro 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2022 Fonticons, Inc. -->
+                    <path
+                        d="M400 288h-352c-17.69 0-32-14.32-32-32.01s14.31-31.99 32-31.99h352c17.69 0 32 14.3 32 31.99S417.7 288 400 288z"
+                    />
+                </svg>
+            </div>
+        </div>
+        <script type="module" src="bundle.js"></script>
+    </body>
+</html>
