@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
@@ -10,6 +9,10 @@ CameraControls.install({ THREE: THREE })
 
 let annotations: { [key: string]: Annotation }
 const annotationMarkers: THREE.Sprite[] = []
+const annotationLabels: CSS2DObject[] = []
+const annotationLines: THREE.Line[] = []
+
+let annotationsVisible = true
 
 const scene = new THREE.Scene()
 
@@ -104,6 +107,7 @@ loader.load(
                     annotationDiv.innerHTML = a
                     const annotationLabel = new CSS2DObject(annotationDiv)
                     annotationLabel.position.copy(annotations[a].lookAt)
+                    annotationLabels.push(annotationLabel)
                     scene.add(annotationLabel)
 
                     if (annotations[a].linePointingAt) addLine(annotations[a])
@@ -145,6 +149,8 @@ function onWindowResize() {
 
 renderer.domElement.addEventListener('click', onClick, false)
 function onClick(event: MouseEvent) {
+    if (!annotationsVisible) return
+
     raycaster.setFromCamera(
         {
             x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
@@ -194,19 +200,21 @@ function addLine(a: any): void {
     const lineGeometry = new THREE.BufferGeometry().setFromPoints(points)
 
     const line = new THREE.Line(lineGeometry, lineMaterial)
+    annotationLines.push(line)
+
     scene.add(line)
 }
 
 const stats = Stats()
 document.body.appendChild(stats.dom)
 
-const cameraTracker = document.getElementById('cameraTracker')
-function trackCamera() {
-    cameraTracker!.innerHTML = `
-<p>X: ${camera.position.x.toFixed(2)}</p>
-<p>Y: ${camera.position.y.toFixed(2)}</p>
-<p>Z: ${camera.position.z.toFixed(2)}</p>`
-}
+// const cameraTracker = document.getElementById('cameraTracker')
+// function trackCamera() {
+//     cameraTracker!.innerHTML = `
+// <p>X: ${camera.position.x.toFixed(2)}</p>
+// <p>Y: ${camera.position.y.toFixed(2)}</p>
+// <p>Z: ${camera.position.z.toFixed(2)}</p>`
+// }
 
 const zoomInButton = document.querySelector('.zoom-in')!
 zoomInButton.addEventListener('click', () => handleZoom('+'))
@@ -232,6 +240,31 @@ function handleRotate(direction: 'left' | 'right') {
     if (direction === 'right') controls.rotate(-45 * THREE.MathUtils.DEG2RAD, 0, true)
 }
 
+const checkbox = document.getElementById('check')! as HTMLInputElement
+checkbox.addEventListener('change', toggleAnnotations)
+
+function toggleAnnotations(e: Event) {
+    console.log(annotations, annotationMarkers)
+
+    const isChecked = (e.target! as HTMLInputElement).checked
+
+    annotationMarkers.forEach((marker) => {
+        marker.visible = isChecked
+    })
+    annotationLabels.forEach((label) => {
+        label.visible = isChecked
+    })
+    annotationLines.forEach((line) => {
+        line.visible = isChecked
+    })
+
+    const annotationsList = document.querySelector('#annotationsPanel ul') as HTMLUListElement
+
+    annotationsList.style.display = isChecked ? 'block' : 'none'
+
+    annotationsVisible = isChecked
+}
+
 const clock = new THREE.Clock()
 
 function animate() {
@@ -246,7 +279,7 @@ function animate() {
 
     stats.update()
 
-    trackCamera()
+    // trackCamera()
 }
 
 function render() {
