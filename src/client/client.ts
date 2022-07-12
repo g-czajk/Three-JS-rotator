@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 import Stats from 'three/examples/jsm/libs/stats.module'
 import { TWEEN } from 'three/examples/jsm/libs/tween.module.min'
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer'
+import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js'
 import CameraControls from 'camera-controls'
 
 CameraControls.install({ THREE: THREE })
@@ -22,10 +23,6 @@ const scene = new THREE.Scene()
 const lineMaterial = new THREE.LineBasicMaterial({
     color: 0x00ff00,
 })
-
-let spotLight = new THREE.SpotLight(0xffffff, 0.8)
-spotLight.position.set(45, 50, 15)
-scene.add(spotLight)
 
 let ambLight = new THREE.AmbientLight(0x333333)
 ambLight.position.set(5, 3, 5)
@@ -56,19 +53,50 @@ controls.dollySpeed = 3
 
 const raycaster = new THREE.Raycaster()
 
-const circleTexture = new THREE.TextureLoader().load('img/circle.png')
+const circleTexture = new THREE.TextureLoader().load('./img/circle.png')
 
 const progressBar = document.getElementById('progressBar') as HTMLProgressElement
 
+const pmremGenerator = new THREE.PMREMGenerator(renderer)
+pmremGenerator.compileEquirectangularShader()
+
+setEnvironment()
+
+function setEnvironment() {
+    getCubeMapTexture('./environments/venice_sunset_1k.hdr').then(({ envMap }) => {
+        scene.environment = envMap
+    })
+}
+
+function getCubeMapTexture(environment: string): Promise<{ envMap: THREE.Texture | null }> {
+    const path = environment
+
+    if (!path) return Promise.resolve({ envMap: null })
+
+    return new Promise((resolve, reject) => {
+        new RGBELoader().load(
+            path,
+            (texture) => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture
+                pmremGenerator.dispose()
+
+                resolve({ envMap })
+            },
+            undefined,
+            reject
+        )
+    })
+}
+
 const loader = new GLTFLoader()
 loader.load(
-    'models/honda/source/hondas800.glb',
+    './models/honda/source/hondas800.glb',
     (object) => {
         scene.add(object.scene)
         object.scene.rotateY(3.14)
 
         const annotationsDownload = new XMLHttpRequest()
-        annotationsDownload.open('GET', '/data/annotations.json')
+        annotationsDownload.open('GET', './data/annotations.json')
         annotationsDownload.onreadystatechange = function () {
             if (annotationsDownload.readyState === 4) {
                 annotations = JSON.parse(annotationsDownload.responseText)
