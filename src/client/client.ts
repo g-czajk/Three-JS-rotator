@@ -17,9 +17,6 @@ let annotationsVisible = true
 
 const scene = new THREE.Scene()
 
-// const axesHelper = new THREE.AxesHelper(5)
-// scene.add(axesHelper)
-
 const lineMaterial = new THREE.LineBasicMaterial({
     color: 0x00ff00,
 })
@@ -153,7 +150,6 @@ loader.load(
         }
         annotationsDownload.send()
     },
-    // called when loading is in progresses
     (xhr) => {
         if (xhr.lengthComputable) {
             let percentComplete = (xhr.loaded / xhr.total) * 100
@@ -196,18 +192,6 @@ function onClick(event: MouseEvent) {
 }
 
 function gotoAnnotation(a: any): void {
-    // new TWEEN.Tween(camera.position)
-    //     .to(
-    //         {
-    //             x: a.camPos.x,
-    //             y: a.camPos.y,
-    //             z: a.camPos.z,
-    //         },
-    //         800
-    //     )
-    //     .easing(TWEEN.Easing.Cubic.Out)
-    //     .start()
-
     controls.setPosition(a.camPos.x, a.camPos.y, a.camPos.z, true)
 
     Object.keys(annotations).forEach((annotation) => {
@@ -235,14 +219,6 @@ function addLine(a: any): void {
 
 const stats = Stats()
 document.body.appendChild(stats.dom)
-
-// const cameraTracker = document.getElementById('cameraTracker')
-// function trackCamera() {
-//     cameraTracker!.innerHTML = `
-// <p>X: ${camera.position.x.toFixed(2)}</p>
-// <p>Y: ${camera.position.y.toFixed(2)}</p>
-// <p>Z: ${camera.position.z.toFixed(2)}</p>`
-// }
 
 const zoomInButton = document.querySelector('.zoom-in')!
 zoomInButton.addEventListener('click', () => handleZoom('+'))
@@ -272,8 +248,6 @@ const checkbox = document.getElementById('check')! as HTMLInputElement
 checkbox.addEventListener('change', toggleAnnotations)
 
 function toggleAnnotations(e: Event) {
-    console.log(annotations, annotationMarkers)
-
     const isChecked = (e.target! as HTMLInputElement).checked
 
     annotationMarkers.forEach((marker) => {
@@ -287,7 +261,6 @@ function toggleAnnotations(e: Event) {
     })
 
     const annotationsList = document.querySelector('#annotationsPanel ul') as HTMLUListElement
-
     annotationsList.style.display = isChecked ? 'block' : 'none'
 
     annotationsVisible = isChecked
@@ -306,8 +279,6 @@ function animate() {
     render()
 
     stats.update()
-
-    // trackCamera()
 }
 
 function render() {
