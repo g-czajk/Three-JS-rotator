@@ -240,8 +240,8 @@ rotateLeftButton.addEventListener('click', () => {
 })
 
 function handleRotate(direction: 'left' | 'right') {
-    if (direction === 'left') controls.rotate(45 * THREE.MathUtils.DEG2RAD, 0, true)
-    if (direction === 'right') controls.rotate(-45 * THREE.MathUtils.DEG2RAD, 0, true)
+    if (direction === 'left') controls.rotate(-45 * THREE.MathUtils.DEG2RAD, 0, true)
+    if (direction === 'right') controls.rotate(45 * THREE.MathUtils.DEG2RAD, 0, true)
 }
 
 const checkbox = document.getElementById('check')! as HTMLInputElement
