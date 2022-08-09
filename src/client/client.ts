@@ -46,7 +46,7 @@ const controls = new CameraControls(camera, renderer.domElement)
 controls.minDistance = 1.5
 controls.maxDistance = 10
 controls.dampingFactor = 0.1
-controls.dollySpeed = 3
+controls.dollySpeed = 1
 
 const raycaster = new THREE.Raycaster()
 
